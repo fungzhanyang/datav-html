@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      type="text/javascript"
+      src="//api.map.baidu.com/api?type=webgl&v=3.0&ak=LUIEKrfcFj7uYeOdMPOsOKYb5MVleiHE"
+    ></script>
+    <script src="https://mapv.baidu.com/gl/examples/static/common.js"></script>
+    <script src="https://mapv.baidu.com/build/mapv.js"></script>
+    <script src="https://code.bdstatic.com/npm/mapvgl@1.0.0-beta.54/dist/mapvgl.min.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map_container {
+        width: 100%;
+        height: 100%;
+      }
+      .anchorBL{
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map_container"></div>
+    <script>
+      // var map = new BMapGL.Map('map')
+      // var point = new BMapGL.Point(108.953589,34.276162)
+      // map.centerAndZoom(point, 16)
+      // map.enableScrollWheelZoom()
+      var cities = ['西安']
+      var cityCenter = mapv.utilCityCenter.getCenterByCityName(cities[0])
+      console.log(cityCenter);
+      
+      var map = initMap({
+        center: [cityCenter.lng,cityCenter.lat],
+        zoom: 16,
+        tilt: 0
+      })
+      //准备数据
+      var data  = []
+      data.push({
+        geometry:{
+          type:'Point',
+          coordiantes: [cityCenter.lng, cityCenter.lat]
+        }
+      })
+
+      //绘制数据
+      //1.生成mapvgl 视图 view
+      var view = new mapvgl.View({map})
+      //2.初始化 mapvgl 的 PointLayer 对象
+      var pointLayer = new mapvgl.PointLayer({})
+      //3.将 Point 对象加入 view 中
+      view.addLayer(pointLayer)
+      //4.将 data 与 Point 进行绑定
+      pointLayer.setData(data)
+    </script>
+  </body>
+</html>

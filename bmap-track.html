@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      type="text/javascript"
+      src="//api.map.baidu.com/api?type=webgl&v=3.0&ak=LUIEKrfcFj7uYeOdMPOsOKYb5MVleiHE"
+    ></script>
+    <script type="text/javascript" src="//api.map.baidu.com/library/TrackAnimation/src/TrackAnimation_min.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+      .anchorBL{
+        display: none;
+      }
+      .tools{
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="tools">
+      <button id="start">start</button>
+      <button id="cancel">cancel</button>
+    </div>
+    <script>
+      var map = new BMapGL.Map('map')
+      var point = new BMapGL.Point(108.895691,34.202734)
+      map.centerAndZoom(point, 17)
+      map.enableScrollWheelZoom()
+      var points = [
+        new BMapGL.Point(108.895691,34.202734),
+        new BMapGL.Point(108.940306,34.167986),
+      ]
+      var polyline = new BMapGL.Polyline(points)
+      // map.addOverlay(polyline);
+      var opts = {
+        delay: 1000,
+        duration: 3000,
+        tilt: 30,
+        overallView: true
+      }
+      var trackAnimation = new BMapGLLib.TrackAnimation(map, polyline, opts)
+      // trackAnimation.start()
+      document.getElementById('start').addEventListener('click',()=>{
+        trackAnimation.start()
+      })
+      document.getElementById('cancel').addEventListener('click',()=>{
+        trackAnimation.cancel()
+      })
+    </script>
+  </body>
+</html>

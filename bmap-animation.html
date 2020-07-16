@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      type="text/javascript"
+      src="//api.map.baidu.com/api?type=webgl&v=3.0&ak=LUIEKrfcFj7uYeOdMPOsOKYb5MVleiHE"
+    ></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+      .anchorBL{
+        display: none;
+      }
+      .tools{
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="tools">
+      <button id="start">start</button>
+      <button id="cancel">cancel</button>
+    </div>
+    <script>
+      var map = new BMapGL.Map('map')
+      var point = new BMapGL.Point(108.953589,34.276162)
+      map.centerAndZoom(point, 20)
+      map.enableScrollWheelZoom()
+      var ketFrames = [
+        {
+          center: new BMapGL.Point(108.953589,34.276162),
+          zoom: 20,
+          tilt: 50,
+          heading: 0,
+          percentage: 0,
+        },
+        // {
+        //   center: new BMapGL.Point(108.953589,34.276162),
+        //   zoom: 16,
+        //   tilt: 50,
+        //   heading: 10,
+        //   percentage: 0.5,
+        // },
+        // {
+        //   center: new BMapGL.Point(108.953589,34.276162),
+        //   zoom: 16,
+        //   tilt: 50,
+        //   heading: 90,
+        //   percentage: 0.99,
+        // },
+        {
+          center: new BMapGL.Point(108.953611,34.28743),
+          zoom: 20,
+          tilt: 50,
+          heading: 0,
+          percentage: 1,
+        },
+      ]
+      var opts = {
+          delay: 100,
+          duration: 3000,
+          interation: 2
+      }
+      var animation = new BMapGL.ViewAnimation(ketFrames, opts)
+      // map.startViewAnimation(animation)
+      document.getElementById('start').addEventListener('click',()=>{
+        map.startViewAnimation(animation)
+      })
+      document.getElementById('cancel').addEventListener('click',()=>{
+        map.cancelViewAnimation(animation)
+      })
+      animation.addEventListener('animationstart', ()=>{
+        console.log('animationstart');
+        
+      })
+      animation.addEventListener('animationiterations', ()=>{
+        console.log('animationiterations');
+        
+      })
+      animation.addEventListener('animationend', ()=>{
+        console.log('animationend');
+        
+      })
+      animation.addEventListener('animationcancel', ()=>{
+        console.log('animationcancel');
+        
+      })
+    </script>
+  </body>
+</html>
