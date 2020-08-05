@@ -12,6 +12,7 @@
     <script src="https://mapv.baidu.com/gl/examples/static/common.js"></script>
     <script src="https://mapv.baidu.com/build/mapv.js"></script>
     <script src="https://code.bdstatic.com/npm/mapvgl@1.0.0-beta.54/dist/mapvgl.min.js"></script>
+    <script src="https://code.bdstatic.com/npm/mapvgl@1.0.0-beta.53/dist/mapvgl.threelayers.min.js"></script>
     <style>
       html,
       body {
@@ -32,22 +33,21 @@
   <body>
     <div id="map_container"></div>
     <script>
+      //初始化地图
       function initBMap() {
-        var cityCenter = mapv.utilCityCenter.getCenterByCityName('西安')
+        var cityCenter = mapv.utilCityCenter.getCenterByCityName('北京')
         var map = initMap({
           center: [cityCenter.lng, cityCenter.lat],
-          zoom: 6,
+          zoom: 5,
           tilt: 0,
-          style: whiteStyle,
+          style: darkStyle,
         })
         return map
       }
 
-      // 绘制散点步骤
-      //1)准备数据
+      //准备数据
       function initData() {
         var data = []
-        var random = 300
         var cities = [
           '北京',
           '天津',
@@ -81,59 +81,73 @@
           '拉萨',
           '海口',
         ]
-        //根据城市名称获取城市坐标
-        while (random--) {
-          var cityCenter = mapv.utilCityCenter.getCenterByCityName(
+        var targetCity = mapv.utilCityCenter.getCenterByCityName('西安')
+        var nodeData = [
+          {
+            x: targetCity.lng,
+            y: targetCity.lat,
+          },
+        ]
+        var edgeData = []
+        var random = 300
+        var curve = new mapvgl.BezierCurve()
+        for (var i = 0; i < random; i++) {
+          var start = mapv.utilCityCenter.getCenterByCityName(
             cities[parseInt(Math.random() * cities.length)]
           )
-          //构造随机数据
+          nodeData.push({
+            x: start.lng - 5 + Math.random() * 10,
+            y: start.lat - 5 + Math.random() * 10,
+          })
+          edgeData.push({
+            source: i,
+            target: 0,
+          })
+        }
+        //边绑定算法
+        var bundling = mapv
+          .utilForceEdgeBundling()
+          .nodes(nodeData)
+          .edges(edgeData)
+        var results = bundling()
+        console.log(results)
+        for (var i = 0; i < results.length; i++) {
+          var line = results[i]
+          var coordinates = []
+          for (var j = 0; j < line.length; j++) {
+            coordinates.push([line[j].x, line[j].y])
+          }
           data.push({
             geometry: {
-              type: 'Point',
-              coordinates: [
-                cityCenter.lng - 2 + Math.random() * 4,
-                cityCenter.lat - 2 + Math.random() * 4,
-              ],
-            },
-            properties: {
-              sales: Math.random() * 100,
+              type: 'LineString',
+              coordinates: coordinates,
             },
           })
         }
-
+        console.log(data)
         return data
       }
 
-      //2)绘制数据
+      //绘制数据
       function setData(map, data) {
-        //1.生成mapvgl 视图 view
         var view = new mapvgl.View({ map })
-        // 2.初始化 Intensity 对象
-        var intensity = new mapvgl.Intensity({
-          min: 0,
-          max: 100,
-          minSize: 5,
-          maxSize: 30,
-          gradient: {
-            0: 'rgba(25,66,102,0.8)',
-            0.3: 'rgba(145,102,129,0.8)',
-            0.7: 'rgba(210,131,137,0.8)',
-            0.1: 'rgba(248,177,149,0.8)',
-          },
+        var lineLayer = new mapvgl.LineLayer({
+          color: 'rgba(55, 50, 250, 0.3)',
+          blend: 'lighter',
         })
-        //2.初始化 mapvgl 的 PointLayer 对象
-        var pointLayer = new mapvgl.PointLayer({
-          size: (data) => {
-            return intensity.getSize(data.properties.sales)
-          },
-          color: (data) => {
-            return intensity.getColor(data.properties.sales)
-          },
+        view.addLayer(lineLayer)
+        lineLayer.setData(data)
+
+        var linePointLayer = new mapvgl.LinePointLayer({
+          size: 8,
+          speed: 20,
+          color: 'rgba(255, 255, 0, 0.6)',
+          animationType: mapvgl.LinePointLayer.ANIMATION_TYPE_SMOOTH,
+          shapeType: mapvgl.LinePointLayer.SHAPE_TYPE_CIRCLE,
+          blend: 'lighter',
         })
-        //3.将 Point 对象加入 view 中
-        view.addLayer(pointLayer)
-        //4.将 data 与 Point 进行绑定
-        pointLayer.setData(data)
+        view.addLayer(linePointLayer)
+        linePointLayer.setData(data)
       }
 
       let map = initBMap()

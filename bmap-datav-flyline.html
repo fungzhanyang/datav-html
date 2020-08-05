@@ -12,6 +12,7 @@
     <script src="https://mapv.baidu.com/gl/examples/static/common.js"></script>
     <script src="https://mapv.baidu.com/build/mapv.js"></script>
     <script src="https://code.bdstatic.com/npm/mapvgl@1.0.0-beta.54/dist/mapvgl.min.js"></script>
+    <script src="https://code.bdstatic.com/npm/mapvgl@1.0.0-beta.62/dist/mapvgl.threelayers.min.js"></script>
     <style>
       html,
       body {
@@ -32,22 +33,21 @@
   <body>
     <div id="map_container"></div>
     <script>
+      //初始化地图
       function initBMap() {
         var cityCenter = mapv.utilCityCenter.getCenterByCityName('西安')
         var map = initMap({
           center: [cityCenter.lng, cityCenter.lat],
           zoom: 6,
-          tilt: 0,
-          style: whiteStyle,
+          tilt: 30,
+          style: purpleStyle,
         })
         return map
       }
 
-      // 绘制散点步骤
-      //1)准备数据
+      //准备数据
       function initData() {
         var data = []
-        var random = 300
         var cities = [
           '北京',
           '天津',
@@ -81,59 +81,56 @@
           '拉萨',
           '海口',
         ]
-        //根据城市名称获取城市坐标
+        //生成贝塞尔曲线坐标集
+        //  1实例化贝塞尔曲线对象
+        var curve = new mapvgl.BezierCurve()
+        var random = 30
         while (random--) {
-          var cityCenter = mapv.utilCityCenter.getCenterByCityName(
+          var start = mapv.utilCityCenter.getCenterByCityName(
             cities[parseInt(Math.random() * cities.length)]
           )
-          //构造随机数据
+          var end = mapv.utilCityCenter.getCenterByCityName(
+            cities[parseInt(Math.random() * cities.length)]
+          )
+          // 2设置起点和终点坐标
+          curve.setOptions({
+            start: [start.lng, start.lat],
+            end: [end.lng, end.lat],
+          })
+          // 3生成贝塞尔曲线坐标
+          var curveData = curve.getPoints()
           data.push({
             geometry: {
-              type: 'Point',
-              coordinates: [
-                cityCenter.lng - 2 + Math.random() * 4,
-                cityCenter.lat - 2 + Math.random() * 4,
-              ],
+              type: 'LineString',
+              coordinates: curveData,
             },
             properties: {
-              sales: Math.random() * 100,
+              count: parseInt(Math.random() * 101),
             },
           })
         }
-
         return data
       }
 
-      //2)绘制数据
+      //绘制数据
       function setData(map, data) {
-        //1.生成mapvgl 视图 view
+        // 初始化图层
         var view = new mapvgl.View({ map })
-        // 2.初始化 Intensity 对象
-        var intensity = new mapvgl.Intensity({
-          min: 0,
-          max: 100,
-          minSize: 5,
-          maxSize: 30,
-          gradient: {
-            0: 'rgba(25,66,102,0.8)',
-            0.3: 'rgba(145,102,129,0.8)',
-            0.7: 'rgba(210,131,137,0.8)',
-            0.1: 'rgba(248,177,149,0.8)',
+        // 初始化飞线对象
+        var flyLayer = new mapvgl.FlyLineLayer({
+          style: 'chaos',
+          step: 0.3,
+          color: 'rgba(33, 242, 214, 0.3)',
+          textureColor: function (data) {
+            return data.properties.count > 50 ? '#ff0000' : '#56ccdd'
           },
+          textureWidth: 20,
+          textureLength: 10,
         })
-        //2.初始化 mapvgl 的 PointLayer 对象
-        var pointLayer = new mapvgl.PointLayer({
-          size: (data) => {
-            return intensity.getSize(data.properties.sales)
-          },
-          color: (data) => {
-            return intensity.getColor(data.properties.sales)
-          },
-        })
-        //3.将 Point 对象加入 view 中
-        view.addLayer(pointLayer)
-        //4.将 data 与 Point 进行绑定
-        pointLayer.setData(data)
+        // 将飞线对象添加到图层中
+        view.addLayer(flyLayer)
+        // 将飞线对象与数据源进行绑定
+        flyLayer.setData(data)
       }
 
       let map = initBMap()
